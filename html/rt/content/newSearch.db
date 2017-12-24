@@ -1,0 +1,9 @@
+Peter	linux	keywords=linux&amp;terse=true
+Peter	crm	keywords=crm event&amp;terse=true
+BZ	Prod Mgmt	keywords=product management
+Peter	Nikos	keywords=Drakos&amp;terse=true&amp;sort=date
+Peter	Europe	keywords=europe&amp;sort=date
+	CRM Save	keywords=crm&amp;terse=true&amp;sort=relavancy
+jay	Fred	keywords=ibm&amp;sort=relavancy
+Peter	Web Standards	keywords=web standards&amp;terse=true&amp;sort=relavancy
+Peter	Latest Research	keywords=*&amp;terse=true&amp;sort=date

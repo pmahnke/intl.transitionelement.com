@@ -1,0 +1,716 @@
+<html><head><title>Textile</title>
+
+<link rel="stylesheet" href="http://bradchoate.com/mt/docs/doc-styles.css" type="text/css">
+<style type="text/css">
+dl {
+	font-family:verdana, arial, sans-serif;
+	font-size:11px;
+	color:#333;
+	line-height:15px;
+}
+</style>
+</head>
+<body>
+<h3>Movable Type User Manual: Textile 2</h3>
+<p><a href="http://bradchoate.com/mt/docs/mtmanual.html">« Table of Contents</a></p>
+
+<a name="__index__"></a>
+
+<ul>
+	<li><a href="#textile">Textile 2</a></li>
+	<ul>
+		<li><a href="#block_formatting">Block Formatting</a></li>
+		<li><a href="#extended_blocks">Extended Blocks</a></li>
+		<li><a href="#escaping">Escaping</a></li>
+		<li><a href="#inline_formatting">Inline Formatting</a></li>
+		<li><a href="#footnotes">Footnotes</a></li>
+		<li><a href="#links">Links</a></li>
+		<li><a href="#images">Images</a></li>
+		<li><a href="#character_replacements">Character Replacements</a></li>
+		<li><a href="#lists">Lists</a></li>
+		<li><a href="#tables">Tables</a></li>
+		<li><a href="#css_notes">CSS Notes</a></li>
+		<li><a href="#miscellaneous">Miscellaneous</a></li>
+		<li><a href="#credits">Credits</a></li>
+	</ul>
+
+</ul>
+
+<hr size="1" color="#CCCCCC">
+
+<h1><a name="block_formatting">Block Formatting</a></h1>
+<p>Textile processes text in units of blocks and lines.
+A block might also be considered a paragraph, since blocks
+are separated from one another by a blank line. Blocks
+can begin with a signature that helps identify the rest
+of the block content. Block signatures include:</p>
+<dl>
+<dt><strong>p</strong><br />
+</dt>
+<dd>
+A paragraph block. This is the default signature if no
+signature is explicitly given. Paragraphs are formatted
+with all the inline rules (see inline formatting) and
+each line receives the appropriate markup rules for
+the flavor of HTML in use. For example, newlines for XHTML
+content receive a &lt;br /&gt; tag at the end of the line
+(with the exception of the last line in the paragraph).
+Paragraph blocks are enclosed in a &lt;p&gt; tag.
+</dd>
+
+<dt><strong>pre</strong><br />
+</dt>
+<dd>
+A pre-formatted block of text. Textile will not add any
+HTML tags for individual lines. Whitespace is also preserved.
+</dd>
+<dd>
+<p>Note that within a &ldquo;pre&rdquo; block, &lt; and &gt; are
+translated into HTML entities automatically.</p>
+</dd>
+
+<dt><strong>bc</strong><br />
+</dt>
+<dd>
+A &ldquo;bc&rdquo; signature is short for &ldquo;block code&rdquo;, which implies
+a preformatted section like the 'pre' block, but it also
+gets a &lt;code&gt; tag (or for XHTML 2, a &lt;blockcode&gt;
+tag is used instead).
+</dd>
+<dd>
+<p>Note that within a &ldquo;bc&rdquo; block, &lt; and &gt; are
+translated into HTML entities automatically.</p>
+</dd>
+
+<dt><strong>table</strong><br />
+</dt>
+<dd>
+For composing HTML tables. See the &ldquo;TABLES&rdquo; section for more
+information.
+</dd>
+
+<dt><strong>bq</strong><br />
+</dt>
+<dd>
+A &ldquo;bq&rdquo; signature is short for &ldquo;block quote&rdquo;. Paragraph text
+formatting is applied to these blocks and they are enclosed
+in a &lt;blockquote&gt; tag as well as &lt;p&gt; tags
+within.
+</dd>
+
+<dt><strong>h1, h2, h3, h4, h5, h6</strong><br />
+</dt>
+<dd>
+Headline signatures that produce &lt;h1&gt;, etc. tags.
+You can adjust the relative output of these using the
+head_offset attribute.
+</dd>
+
+<dt><strong>clear</strong><br />
+</dt>
+<dd>
+A 'clear' signature is simply used to indicate that the next
+block should emit a CSS style attribute that clears any
+floating elements. The default behavior is to clear &ldquo;both&rdquo;,
+but you can use the left (&lt;) or right (&gt;) alignment
+characters to indicate which side to clear.
+</dd>
+
+<dt><strong>dl</strong><br />
+</dt>
+<dd>
+A &ldquo;dl&rdquo; signature is short for &ldquo;definition list&rdquo;. See the
+&ldquo;LISTS&rdquo; section for more information.
+</dd>
+
+<dt><strong>fn</strong><br />
+</dt>
+<dd>
+A &ldquo;fn&rdquo; signature is short for &ldquo;footnote&rdquo;. You add a number
+following the &ldquo;fn&rdquo; keyword to number the footnote. Footnotes
+are output as paragraph tags but are given a special CSS
+class name which can be used to style them as you see fit.
+</dd>
+</dl>
+<p>All signatures should end with a period and be followed
+with a space. Inbetween the signature and the period, you
+may use several parameters to further customize the block.
+These include:</p>
+<dl>
+<dt><strong><code>{style rule}</code></strong><br />
+</dt>
+<dd>
+A CSS style rule. Style rules can span multiple lines.
+</dd>
+
+<dt><strong><code>[ll]</code></strong><br />
+</dt>
+<dd>
+A language identifier (for a &ldquo;lang&rdquo; attribute).
+</dd>
+
+<dt><strong><code>(class)</code> or <code>(#id)</code> or <code>(class#id)</code></strong><br />
+</dt>
+<dd>
+For CSS class and id attributes.
+</dd>
+
+<dt><strong><code>&gt;</code>, <code>&lt;</code>, <code>=</code>, <code>&lt;&gt;</code></strong><br />
+</dt>
+<dd>
+Modifier characters for alignment. Right-justification, left-justification,
+centered, and full-justification.
+</dd>
+
+<dt><strong><code>(</code> (one or more)</strong><br />
+</dt>
+<dd>
+Adds padding on the left. 1em per &ldquo;(&rdquo; character is applied.
+When combined with the align-left or align-right modifier,
+it makes the block float.
+</dd>
+
+<dt><strong><code>)</code> (one or more)</strong><br />
+</dt>
+<dd>
+Adds padding on the right. 1em per &ldquo;)&rdquo; character is applied.
+When combined with the align-left or align-right modifier,
+it makes the block float.
+</dd>
+
+<dt><strong><code>|filter|</code> or <code>|filter|filter|filter|</code></strong><br />
+</dt>
+<dd>
+A filter may be invoked to further format the text for this
+signature. If one or more filters are identified, the text
+will be processed first using the filters and then by
+Textile's own block formatting rules.
+</dd>
+</dl>
+
+<h2><a name="extended_blocks">Extended Blocks</a></h2>
+<p>Normally, a block ends with the first blank line encountered.
+However, there are situations where you may want a block to continue
+for multiple paragraphs of text. To cause a given block signature
+to stay active, use two periods in your signature instead of one.
+This will tell Textile to keep processing using that signature
+until it hits the next signature is found.</p>
+<p>For example:</p>
+<pre>
+    bq.. This is paragraph one of a block quote.
+
+    This is paragraph two of a block quote.
+
+    p. Now we're back to a regular paragraph.</pre>
+<p>You can apply this technique to any signature (although for
+some it doesn't make sense, like &ldquo;h1&rdquo; for example). This is
+especially useful for &ldquo;bc&rdquo; blocks where your code may
+have many blank lines scattered through it.</p>
+
+<h2><a name="escaping">Escaping</a></h2>
+<p>Sometimes you want Textile to just get out of the way and
+let you put some regular HTML markup in your document. You
+can disable Textile formatting for a given block using the '=='
+escape mechanism:</p>
+<pre>
+    p. Regular paragraph
+
+    ==
+    Escaped portion -- will not be formatted
+    by Textile at all
+    ==
+
+    p. Back to normal.</pre>
+<p>You can also use this technique within a Textile block,
+temporarily disabling the inline formatting functions:</p>
+<pre>
+    p. This is ==*a test*== of escaping.</pre>
+
+<h2><a name="inline_formatting">Inline Formatting</a></h2>
+<p>Formatting within a block of text is covered by the &ldquo;inline&rdquo;
+formatting rules. These operators must be placed up against
+text/punctuation to be recognized. These include:</p>
+<dl>
+<dt><strong>&#42;<code>strong</code>&#42;</strong><br />
+</dt>
+<dd>
+Translates into &lt;strong&gt;strong&lt;/strong&gt;.
+</dd>
+
+<dt><strong><code>_emphasis_</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;em&gt;emphasis&lt;/em&gt;.
+</dd>
+
+<dt><strong>&#42;&#42;<code>bold</code>&#42;&#42;</strong><br />
+</dt>
+<dd>
+Translates into &lt;b&gt;bold&lt;/b&gt;.
+</dd>
+
+<dt><strong><code>__italics__</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;i&gt;italics&lt;/i&gt;.
+</dd>
+
+<dt><strong><code>++bigger++</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;big&gt;bigger&lt;/big&gt;.
+</dd>
+
+<dt><strong><code>--smaller--</code></strong><br />
+</dt>
+<dd>
+Translates into: &lt;small&gt;smaller&lt;/small&gt;.
+</dd>
+
+<dt><strong><code>-deleted text-</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;del&gt;deleted text&lt;/del&gt;.
+</dd>
+
+<dt><strong><code>+inserted text+</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;ins&gt;inserted text&lt;/ins&gt;.
+</dd>
+
+<dt><strong><code>^superscript^</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;sup&gt;superscript&lt;/sup&gt;.
+</dd>
+
+<dt><strong><code>~subscript~</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;sub&gt;subscript&lt;/sub&gt;.
+</dd>
+
+<dt><strong><code>%span%</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;span&gt;span&lt;/span&gt;.
+</dd>
+
+<dt><strong><code>@code@</code></strong><br />
+</dt>
+<dd>
+Translates into &lt;code&gt;code&lt;/code&gt;. Note
+that within a '@...@' section, &lt; and &gt; are
+translated into HTML entities automatically.
+</dd>
+</dl>
+<p>Inline formatting operators accept the following modifiers:</p>
+<dl>
+<dt><strong><code>{style rule}</code></strong><br />
+</dt>
+<dd>
+A CSS style rule.
+</dd>
+
+<dt><strong><code>[ll]</code></strong><br />
+</dt>
+<dd>
+A language identifier (for a &ldquo;lang&rdquo; attribute).
+</dd>
+
+<dt><strong><code>(class)</code> or <code>(#id)</code> or <code>(class#id)</code></strong><br />
+</dt>
+<dd>
+For CSS class and id attributes.
+</dd>
+</dl>
+
+<h3>Examples</h3>
+<pre>
+    Textile is *way* cool.
+
+    Textile is *_way_* cool.</pre>
+<p>Now this won't work, because the formatting
+characters need whitespace before and after
+to be properly recognized.</p>
+<pre>
+    Textile is way c*oo*l.</pre>
+<p>However, you can supply braces or brackets to
+further clarify that you want to format, so
+this would work:</p>
+<pre>
+    Textile is way c[*oo*]l.</pre>
+
+<h2><a name="footnotes">Footnotes</a></h2>
+<p>You can create footnotes like this:</p>
+<pre>
+    And then he went on a long trip[1].</pre>
+<p>By specifying the brackets with a number inside, Textile will
+recognize that as a footnote marker. It will replace that with
+a construct like this:</p>
+<pre>
+    And then he went on a long
+    trip&lt;sup class=&quot;footnote&quot;&gt;&lt;a href=&quot;#fn1&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;</pre>
+<p>To supply the content of the footnote, place it at the end of your
+document using a &ldquo;fn&rdquo; block signature:</p>
+<pre>
+    fn1. And there was much rejoicing.</pre>
+<p>Which creates a paragraph that looks like this:</p>
+<pre>
+    &lt;p class=&quot;footnote&quot; id=&quot;fn1&quot;&gt;&lt;sup&gt;1&lt;/sup&gt; And there was
+    much rejoicing.&lt;/p&gt;</pre>
+
+<h2><a name="links">Links</a></h2>
+<p>Textile defines a shorthand for formatting hyperlinks.
+The format looks like this:</p>
+<pre>
+    &quot;Text to display&quot;:http://example.com</pre>
+<p>In addition to this, you can add 'title' text to your link:</p>
+<pre>
+    &quot;Text to display (Title text)&quot;:http://example.com</pre>
+<p>The URL portion of the link supports relative paths as well
+as other protocols like ftp, mailto, news, telnet, etc.</p>
+<pre>
+    &quot;E-mail me please&quot;:mailto:someone@example.com</pre>
+<p>You can also use single quotes instead of double-quotes if
+you prefer. As with the inline formatting rules, a hyperlink
+must be surrounded by whitespace to be recognized (an
+exception to this is common punctuation which can reside
+at the end of the URL). If you have to place a URL next to
+some other text, use the bracket or brace trick to do that:</p>
+<pre>
+    You[&quot;gotta&quot;:http://example.com]seethis!</pre>
+<p>Textile supports an alternate way to compose links. You can
+optionally create a lookup list of links and refer to them
+separately. To do this, place one or more links in a block
+of it's own (it can be anywhere within your document):</p>
+<pre>
+    [excom]http://example.com
+    [exorg]http://example.org</pre>
+<p>For a list like this, the text in the square brackets is
+used to uniquely identify the link given. To refer to that
+link, you would specify it like this:</p>
+<pre>
+    &quot;Text to display&quot;:excom</pre>
+<p>Once you've defined your link lookup table, you can use
+the identifiers any number of times.</p>
+
+<h2><a name="images">Images</a></h2>
+<p>Images are identified by the following pattern:</p>
+<pre>
+    !/path/to/image!</pre>
+<p>Image attributes may also be specified:</p>
+<pre>
+    !/path/to/image 10x20!</pre>
+<p>Which will render an image 10 pixels wide and 20 pixels high.
+Another way to indicate width and height:</p>
+<pre>
+    !/path/to/image 10w 20h!</pre>
+<p>You may also redimension the image using a percentage.</p>
+<pre>
+    !/path/to/image 20%x40%!</pre>
+<p>Which will render the image at 20% of it's regular width
+and 40% of it's regular height.</p>
+<p>Or specify one percentage to resize proprotionately:</p>
+<pre>
+    !/path/to/image 20%!</pre>
+<p>Alt text can be given as well:</p>
+<pre>
+    !/path/to/image (Alt text)!</pre>
+<p>The path of the image may refer to a locally hosted image or
+can be a full URL.</p>
+<p>You can also use the following modifiers after the opening '!'
+character:</p>
+<dl>
+<dt><strong><code>&lt;</code></strong><br />
+</dt>
+<dd>
+Align the image to the left (causes the image to float if
+CSS options are enabled).
+</dd>
+
+<dt><strong><code>&gt;</code></strong><br />
+</dt>
+<dd>
+Align the image to the right (causes the image to float if
+CSS options are enabled).
+</dd>
+
+<dt><strong><code>-</code> (dash)</strong><br />
+</dt>
+<dd>
+Aligns the image to the middle.
+</dd>
+
+<dt><strong><code>^</code></strong><br />
+</dt>
+<dd>
+Aligns the image to the top.
+</dd>
+
+<dt><strong><code>~</code> (tilde)</strong><br />
+</dt>
+<dd>
+Aligns the image to the bottom.
+</dd>
+
+<dt><strong><code>{style rule}</code></strong><br />
+</dt>
+<dd>
+Applies a CSS style rule to the image.
+</dd>
+
+<dt><strong><code>(class)</code> or <code>(#id)</code> or <code>(class#id)</code></strong><br />
+</dt>
+<dd>
+Applies a CSS class and/or id to the image.
+</dd>
+
+<dt><strong><code>(</code> (one or more)</strong><br />
+</dt>
+<dd>
+Pads 1em on the left for each '(' character.
+</dd>
+
+<dt><strong><code>)</code> (one or more)</strong><br />
+</dt>
+<dd>
+Pads 1em on the right for each ')' character.
+</dd>
+</dl>
+
+<h2><a name="character_replacements">Character Replacements</a></h2>
+<p>A few simple, common symbols are automatically replaced:</p>
+<pre>
+    (c)
+    (r)
+    (tm)</pre>
+<p>In addition to these, there are a whole set of character
+macros that are defined by default. All macros are enclosed
+in curly braces. These include:</p>
+<pre>
+    {c|} or {|c} cent sign
+    {L-} or {-L} pound sign
+    {Y=} or {=Y} yen sign</pre>
+<p>Many of these macros can be guessed. For example:</p>
+<pre>
+    {A'} or {'A}
+    {a&quot;} or {&quot;a}
+    {1/4}
+    {*}
+    {:)}
+    {:(}</pre>
+
+<h2><a name="lists">Lists</a></h2>
+<p>Textile also supports ordered and unordered lists.
+You simply place an asterisk or pound sign, followed
+with a space at the start of your lines.</p>
+<p>Simple lists:</p>
+<pre>
+    * one
+    * two
+    * three</pre>
+<p>Multi-level lists:</p>
+<pre>
+    * one
+    ** one A
+    ** one B
+    *** one B1
+    * two
+    ** two A
+    ** two B
+    * three</pre>
+<p>Ordered lists:</p>
+<pre>
+    # one
+    # two
+    # three</pre>
+<p>Styling lists:</p>
+<pre>
+    (class#id)* one
+    * two
+    * three</pre>
+<p>The above sets the class and id attributes for the &lt;ul&gt;
+tag.</p>
+<pre>
+    *(class#id) one
+    * two
+    * three</pre>
+<p>The above sets the class and id attributes for the first &lt;li&gt;
+tag.</p>
+<p>Definition lists:</p>
+<pre>
+    dl. textile:a cloth, especially one manufactured by weaving
+    or knitting; a fabric
+    format:the arrangement of data for storage or display.</pre>
+<p>Note that there is no space between the term and definition. The
+term must be at the start of the line (or following the &ldquo;dl&rdquo;
+signature as shown above).</p>
+
+<h2><a name="tables">Tables</a></h2>
+<p>Textile supports tables. Tables must be in their own block and
+must have pipe characters delimiting the columns. An optional
+block signature of &ldquo;table&rdquo; may be used, usually for applying
+style, class, id or other options to the table element itself.</p>
+<p>From the simple:</p>
+<pre>
+    |a|b|c|
+    |1|2|3|</pre>
+<p>To the complex:</p>
+<pre>
+    table(fig). {color:red}_|Top|Row|
+    {color:blue}|/2. Second|Row|
+    |_{color:green}. Last|</pre>
+<p>Modifiers can be specified for the table signature itself,
+for a table row (prior to the first '&verbar;' character) and
+for any cell (following the '&verbar;' for that cell). Note that for
+cells, a period followed with a space must be placed after
+any modifiers to distinguish the modifier from the cell content.</p>
+<p>Modifiers allowed are:</p>
+<dl>
+<dt><strong><code>{style rule}</code></strong><br />
+</dt>
+<dd>
+A CSS style rule.
+</dd>
+
+<dt><strong><code>(class)</code> or <code>(#id)</code> or <code>(class#id)</code></strong><br />
+</dt>
+<dd>
+A CSS class and/or id attribute.
+</dd>
+
+<dt><strong><code>(</code> (one or more)</strong><br />
+</dt>
+<dd>
+Adds 1em of padding to the left for each '(' character.
+</dd>
+
+<dt><strong><code>)</code> (one or more)</strong><br />
+</dt>
+<dd>
+Adds 1em of padding to the right for each ')' character.
+</dd>
+
+<dt><strong><code>&lt;</code></strong><br />
+</dt>
+<dd>
+Aligns to the left (floats to left for tables if combined with the
+')' modifier).
+</dd>
+
+<dt><strong><code>&gt;</code></strong><br />
+</dt>
+<dd>
+Aligns to the right (floats to right for tables if combined with
+the '(' modifier).
+</dd>
+
+<dt><strong><code>=</code></strong><br />
+</dt>
+<dd>
+Aligns to center (sets left, right margins to 'auto' for tables).
+</dd>
+
+<dt><strong><code>&lt;&gt;</code></strong><br />
+</dt>
+<dd>
+For cells only. Justifies text.
+</dd>
+
+<dt><strong><code>^</code></strong><br />
+</dt>
+<dd>
+For rows and cells only. Aligns to the top.
+</dd>
+
+<dt><strong><code>~</code> (tilde)</strong><br />
+</dt>
+<dd>
+For rows and cells only. Aligns to the bottom.
+</dd>
+
+<dt><strong><code>_</code> (underscore)</strong><br />
+</dt>
+<dd>
+Can be applied to a table row or cell to indicate a header
+row or cell.
+</dd>
+
+<dt><strong><code>\2</code> or <code>\3</code> or <code>\4</code>, etc.</strong><br />
+</dt>
+<dd>
+Used within cells to indicate a colspan of 2, 3, 4, etc. columns.
+When you see "\", think "push forward".
+</dd>
+
+<dt><strong><code>/2</code> or <code>/3</code> or <code>/4</code>, etc.</strong><br />
+</dt>
+<dd>
+Used within cells to indicate a rowspan of 2, 3, 4, etc. rows.
+When you see "/", think "push downward".
+</dd>
+</dl>
+<p>When a cell is identified as a header cell and an alignment
+is specified, that becomes the default alignment for
+cells below it. You can always override this behavior by
+specifying an alignment for one of the lower cells.</p>
+
+<h2><a name="css_notes">CSS Notes</a></h2>
+<p>When CSS is enabled (and it is by default), CSS class names
+are automatically applied in certain situations.</p>
+<dl>
+<dt><strong>Aligning a block or span or other element to
+left, right, etc.</strong><br />
+</dt>
+<dd>
+&ldquo;left&rdquo; for left justified, &ldquo;right&rdquo; for right justified,
+&ldquo;center&rdquo; for centered text, &ldquo;justify&rdquo; for full-justified
+text.
+</dd>
+
+<dt><strong>Aligning an image to the top or bottom</strong><br />
+</dt>
+<dd>
+&ldquo;top&rdquo; for top alignment, &ldquo;bottom&rdquo; for bottom alignment,
+&ldquo;middle&rdquo; for middle alignment.
+</dd>
+
+<dt><strong>Footnotes</strong><br />
+</dt>
+<dd>
+&ldquo;footnote&rdquo; is applied to the paragraph tag for the
+footnote text itself. An id of &ldquo;fn&rdquo; plus the footnote
+number is placed on the paragraph for the footnote as
+well. For the footnote superscript tag, a class of
+&ldquo;footnote&rdquo; is used.
+</dd>
+
+<dt><strong>Capped text</strong><br />
+</dt>
+<dd>
+For a series of characters that are uppercased, a
+span is placed around them with a class of &ldquo;caps&rdquo;.
+</dd>
+</dl>
+
+<h2><a name="miscellaneous">Miscellaneous</a></h2>
+<p>Textile tries to do it's very best to ensure proper XHTML
+syntax. It will even attempt to fix errors you may introduce
+writing in HTML yourself. Unescaped '&amp;' characters within
+URLs will be properly escaped. Singlet tags such as br, img
+and hr are checked for the '/' terminator (and it's added
+if necessary). The best way to make sure you produce valid
+XHTML with Textile is to not use any HTML markup at all--
+use the Textile syntax and let it produce the markup for you.</p>
+
+<h1><a name="credits"></a>Credits</h1>
+
+<p>The Textile text formatting code for Movable Type was written
+by <a href="http://www.bradchoate.com/" target="_blank">Brad Choate</a>.
+The Textile formatting syntax was developed by
+<a href="http://www.textism.com/">Dean Allen</a>. Many thanks to Dean for his
+permission to adapt Textile for use in Movable Type.</p>
+
+</body></html>
