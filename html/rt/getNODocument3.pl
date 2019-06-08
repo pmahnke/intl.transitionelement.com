@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 
 # getNODocument3.pl has a differnt way to handle authors.... than getNODocument.pl
 

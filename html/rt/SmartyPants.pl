@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 #
 # SmartyPants  -  A Plug-In for Movable Type, Blosxom, and BBEdit
