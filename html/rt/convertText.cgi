@@ -105,7 +105,7 @@ sub processText {
 	    dialect => 'github'
 	    );	
     }
-    $output = &clean4markdown($output)              if ($FORM{'clean'}); 
+    $output = &clean4markdown($output)             if ($FORM{'clean'}); 
     $output = &SmartyPants ($output, 1)            if ($FORM{'smart'});
     $output = &noHang($output, $FORM{'noHang'})    if ($FORM{'noHang'});
     $output = &html2textile($output)               if ($FORM{'html2textile'});

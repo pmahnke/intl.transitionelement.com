@@ -1,5 +1,4 @@
-#!/usr/local/bin/perl
-
+#!/usr//bin/perl
 # marketo to normal htmlconverter
 # status
 # 2015-11-18 - change jquery.validation to add http:// as defauls protocal on url fields
@@ -153,8 +152,8 @@ sub processRow {
     return() if (!$_[0]);
     
     # sets class based on required or not
-    $class = qq | class="mktField"|;
-    $class = qq | class="mktFormReq mktField"| if ($_[1]);
+    $class = qq | class="p-list__item mktField"|;
+    $class = qq | class="p-list__item mktFormReq mktField"| if ($_[1]);
     $class .= qq | id="comments"| if ($_[0] =~ /Comments_from_lead__c/);
 
     my $in = $_[0];
@@ -189,7 +188,7 @@ sub printForm {
     my $display;
     $display = qq | style="display: none;" | if (!$_[0]);
     
-    my $formTag = qq |<form action="https://pages.ubuntu.com/index.php/leadCapture/save" method="post" id="$_[1]">|;
+    my $formTag = qq |<form action="https://pages.ubuntu.com/index.php/leadCapture/save" method="post" id="$_[1]" class="marketo-form">|;
     
     my $form = qq |
 <!-- MARKETO FORM -->
@@ -199,7 +198,7 @@ sub printForm {
     
 $formTag 
 <fieldset>
-    <ul class="no-bullets">          
+    <ul class="p-list">          
 $_[0]
     </ul>
 </fieldset>
@@ -233,6 +232,7 @@ $testscript
     $F{'mkto'} =~ s/</&lt;/g;
     
     print qq ~Content-type:  text/html
+X-XSS-Protection:0
 
 <!doctype html>
 <head>
