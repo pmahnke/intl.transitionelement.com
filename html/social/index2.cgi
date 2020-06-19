@@ -60,7 +60,7 @@ sub printForm {
     </script>
     |;
 
-
+    
     print qq~Content-type: text/html;
 
 <!doctype html>
@@ -93,7 +93,7 @@ sub printForm {
 
     <h4>Facebook mobile - 1080 x 1080</h4>
     $canvasFacebookmobile
-
+    
     <h4>Facebook 9:16 - 400 x 500</h4>
     $canvasFacebook916
 
@@ -112,14 +112,14 @@ sub printForm {
     <div class="col-8">
       <form method="GET">
         <label for="h1">Title</label>
-        <input type="text" id="h1" name="h1" value="$F{'h1'}">
+        <input type="text" id="h1" name="h1" value="$F{'h1'}">                                                                                                                                                                                                                                              
         <label for="h4">Sub-heading</label>
-        <input type="text" id="h4" name="h4" value="$F{'h4'}">
+        <input type="text" id="h4" name="h4" value="$F{'h4'}">                                       
 
         <label for="image">Image</label>
-        <input type="text" id="image" name="image" value="$F{'image'}">
-
-        <label for="class">Background</label>
+        <input type="text" id="image" name="image" value="$F{'image'}">                                       
+                                                                                                                                                             
+        <label for="class">Background</label>                                                                                                                        
         <select name="class" id="class">
           $selection
           <option>p-engage-banner--dark</option>
@@ -127,9 +127,9 @@ sub printForm {
           <option>p-engage-banner--k8s</option>
           <option>p-engage-banner--aqua</option>
           <option>p-engage-banner--snapcraft</option>
-        </select>
-        <button class="p-button--positive u-float-right">Go</button>
-      </form>
+        </select>                                                                                                                                                                                                                                                                     
+        <button class="p-button--positive u-float-right">Go</button>  
+      </form>   
      </div>
     </div>
    </section>
@@ -147,7 +147,7 @@ sub printForm {
 sub makeCanvas {
 
     # inputs - 0 - name, 1 - canvas width, 2 - canvas height, 3 - wide or tall, 4 - h1 size
-
+    
     my ($h1, $line) = "";
     my $logox = 0.6 * $_[1];
     my $midy = 0.35 * $_[2];
@@ -155,21 +155,21 @@ sub makeCanvas {
     $midy =  $midy - 10 if (length($F{'h1'}) > 40 && $_[0] ne 'facebook916');
     $midy =  $midy + 30 if (length($F{'h1'}) > 40 && $_[3] eq 'square');
     my $height = $midy + 42;
-
+    
     my $leftm = 30; # left margin
     my $h1size = "36px"; # h1 font size
     my $h1lh = 48; # line height
-
+    
     if ($_[4] eq 'big') {
 	# make big images have more space;
 	$leftm = 100;
 	$h1size = "46px";
 	$h1lh = 53;
     }
-
-
+	
+    
     my @h1 = split(/ /, $F{'h1'});
-    foreach (@h1) {
+    foreach (@h1) { 
 	$line .= "$_ ";
 	if (length($line) > 18) {
 	    $height += $h1lh;
@@ -179,12 +179,12 @@ sub makeCanvas {
     }
     $height += $h1lh;
     $h1 .= qq |ctx$_[0].fillText("$line", $leftm, $height);| if (length($line) > 0);
-
+    
     my ($h4, %stop, $class) = "";
     $line = "";
     $height += 53;
     my @h4 = split(/ /, $F{'h4'});
-    foreach (@h4) {
+    foreach (@h4) { 
 	$line .= "$_ ";
 	if (length($line) > 25) {
 	    $h4 .= qq |ctx$_[0].fillText("$line", $leftm, $height);|;
@@ -201,23 +201,23 @@ sub makeCanvas {
     $stop{'p-engage-banner--dark'}{1} = "#111111";
     $stop{'p-engage-banner--dark'}{2} = "#333333";
     $stop{'p-engage-banner--dark'}{3} = "#4e4e4e";
-
+    
     $stop{'p-engage-banner--k8s'}{3} = "#326de6";
     $stop{'p-engage-banner--k8s'}{2} = "#173d8b";
     $stop{'p-engage-banner--k8s'}{1} = "#173d8b";
-
+    
     $stop{'p-engage-banner--aqua'}{1} = "#2b585d";
     $stop{'p-engage-banner--aqua'}{2} = "#47919a";
     $stop{'p-engage-banner--aqua'}{3} = "#47919a";
-
+    
     $stop{'p-engage-banner--snapcraft'}{3} = "#83bfa1";
     $stop{'p-engage-banner--snapcraft'}{2} = "#83bfa1";
     $stop{'p-engage-banner--snapcraft'}{1} = "#2d6162";
 
     $class = $F{'class'};
-
+    
     my $addlogo = qq |ctx$_[0].drawImage(img, $logox, ($_[2]-newh)/2, neww, newh);|;
-    $addlogo = qq |ctx$_[0].drawImage(img, $leftm, 50, 100/(img.height/img.width), 100);| if ($_[0] eq 'facebook916');
+    $addlogo = qq |ctx$_[0].drawImage(img, $leftm, 50, 100/(img.height/img.width), 100);| if ($_[0] eq 'facebook916'); 
 
     my $canvas = qq |
 
@@ -230,56 +230,26 @@ sub makeCanvas {
     var canvas$_[0] = document.getElementById("$_[0]");
     var ctx$_[0] = canvas$_[0].getContext("2d");
 
-    // Create gradient - color
+    // Create gradient
     var grd$_[0] = ctx$_[0].createLinearGradient(0, 0, $_[1], $_[2]);
     grd$_[0].addColorStop(0, "$stop{$class}{1}");
     grd$_[0].addColorStop(.42, "$stop{$class}{2}");
     grd$_[0].addColorStop(.94, "$stop{$class}{3}");
     // Fill with gradient
-    ctx$_[0].globalAlpha = 1;
-    ctx$_[0].fillStyle = grd$_[0];
+    ctx$_[0].fillStyle = grd$_[0]; 
     ctx$_[0].fillRect(0, 0, $_[1], $_[2]);
+    
+    // Create gradient
+    var grdfacebook = ctxfacebook.createLinearGradient(200, 200, 1200, 628);
+    grdfacebook.addColorStop(0, "#111111");
+    grdfacebook.addColorStop(.42, "#333333");
+    grdfacebook.addColorStop(.94, "#666666");
+    // Fill with gradient
+    ctxfacebook.fillStyle = grdfacebook;
+    ctxfacebook.rotate(20 * Math.PI / 180);
+    ctxfacebook.fillRect(220, 220, 1200, 628);
 
-
-    // Create gradient F7F7F7
-    grd$_[0]F = ctx$_[0].createLinearGradient(0, 0, $_[1], $_[2]+200);
-    grd$_[0]F.addColorStop(0, 'rgba(247, 247, 247, 1)' );
-    grd$_[0]F.addColorStop(.5, 'rgba(247, 247, 247, 1)' );
-    grd$_[0]F.addColorStop(.5, 'rgba(247, 247, 247, 0)' );
-    grd$_[0]F.addColorStop(1, 'rgba(247, 247, 247, 0)' );
-    ctx$_[0].globalAlpha = 0.02;
-    // Fill with gradient F7F7F7
-    ctx$_[0].fillStyle = grd$_[0]F;
-    ctx$_[0].rotate(10 * Math.PI / 180);
-    ctx$_[0].fillRect(0, 0, $_[1]*1.25, $_[2]);
-    // reset rotation
-    ctx$_[0].rotate(-10 * Math.PI / 180);
-
-    // Create gradient E4E4E4
-    grd$_[0]E = ctx$_[0].createLinearGradient(0, 0, $_[1], $_[2]);
-    grd$_[0]E.addColorStop(0, 'rgba(228, 228, 228, 0.54)' );
-    grd$_[0]E.addColorStop(.5, 'rgba(228, 228, 228, 0.54)' );
-    ctx$_[0].globalAlpha = 0.05;
-    // Fill with gradient E4E4E4
-    ctx$_[0].fillStyle = grd$_[0]E;
-    ctx$_[0].rotate(-12 * Math.PI / 180);
-    ctx$_[0].fillRect(-250, 400, $_[1]*1.25, $_[2]);
-    // reset rotation
-    ctx$_[0].rotate(12 * Math.PI / 180);
-
-    // Create gradient D5D5D5
-    grd$_[0]D = ctx$_[0].createLinearGradient(0, 0, 2000, 2000);
-    grd$_[0]D.addColorStop(0, 'rgba(216, 216, 216, 0.54)' );
-    grd$_[0]D.addColorStop(.5, 'rgba(216, 216, 216, 0.54)' );
-    ctx$_[0].globalAlpha = 0.05;
-    // Fill with gradient D5D5D5
-    ctx$_[0].fillStyle = grd$_[0]D;
-    ctx$_[0].rotate(50 * Math.PI / 180);
-    ctx$_[0].fillRect(600, -1000, 2000, 2000);
-    // reset rotation
-    ctx$_[0].rotate(-50 * Math.PI / 180);
-
-    ctx$_[0].globalAlpha = 1;
+    ctxfacebook.rotate(0 * Math.PI / 180);
 
     // add ubuntu logo
     ctx$_[0].drawImage(ubuntu, $leftm, $midy, 143, 32);
@@ -296,7 +266,7 @@ sub makeCanvas {
     ctx$_[0].font = "normal 300 20.8979px Ubuntu";
     $h4
     |;
-
+	
     return($canvas);
 
 }
