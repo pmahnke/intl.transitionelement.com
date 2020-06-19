@@ -232,9 +232,9 @@ sub makeCanvas {
 
     // Create gradient - color
     var grd$_[0] = ctx$_[0].createLinearGradient(0, 0, $_[1], $_[2]);
-    grd$_[0].addColorStop(0, "#2c001e");
-    grd$_[0].addColorStop(.6, "#772953");
-    grd$_[0].addColorStop(.95, "#e95420");
+    grd$_[0].addColorStop(0, "$stop{$class}{1}");
+    grd$_[0].addColorStop(.42, "$stop{$class}{2}");
+    grd$_[0].addColorStop(.94, "$stop{$class}{3}");
     // Fill with gradient
     ctx$_[0].globalAlpha = 1;
     ctx$_[0].fillStyle = grd$_[0];
