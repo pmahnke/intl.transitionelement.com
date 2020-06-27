@@ -29,3 +29,6 @@ logs/error_log.7.gz
 logs/error_log.8.gz
 logs/error_log.9.gz
 logs/
+cgi-bin/blog_form.cgi~
+html/modal/index.cgi~
+html/social/index2.cgi~
