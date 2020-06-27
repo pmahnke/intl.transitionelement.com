@@ -100,7 +100,7 @@ sub processText {
         markdown => $output,
         dialect => 'github'
         );
-      }
+     }
       $output = &clean4markdown($output)             if ($FORM{'clean'});
       $output = &SmartyPants ($output, 1)            if ($FORM{'smart'});
       $output = &noHang($output, $FORM{'noHang'})    if ($FORM{'noHang'});
@@ -112,7 +112,9 @@ sub processText {
       $preoutput =~ s/\&/\&amp\;/g;
       $preoutput =~ s/</&lt\;/g;
       $preoutput =~ s/>/&gt\;/g;
-
+      $preoutput =~ s/\n/\n\n/g;
+      $preoutput =~ s/\n\n\n/\n\n/g;
+      $preoutput =~ s/\n\n\n/\n\n/g;
 
       $preFull = $docType."<title>add title<\/title\>\n\n<\/head\>\n\n<body\>\n\n".$output."\n<\/body\>\n<\/html\>\n";
       $preFull =~ s/\&amp\;/\&/g;
@@ -131,19 +133,25 @@ sub processText {
       $fH = "checked=\"checked\"" if ($FORM{'html2textile'});
       $fCite = "checked=\"checked\"" if ($FORM{'cite'});
 
+  my $filename = $FORM{'title'};
+  $filename = "lbrut-".$filename if ($FORM{'cite'});
+  $filename =~ tr/[A-Z]/[a-z]/;
+  $filename =~ s/ /-/g;
 
+  my $excerpt = (split /\n/, $preoutput)[0];
+  
       # date logic for yaml
-      my $d = qq |-d='$FORM{'date'}'| if ($FORM{'date'});
+      my $d = qq |-d '$FORM{'date'} 10:00:00'| if ($FORM{'date'});
 
       # date
       my $date = `date $d +'%Y-%m-%d'`;
       chop($date);
 
       # yaml date
-      my $slash_date = `date $d +'/archives/%Y/%m/filename.html'`;
+      my $slash_date = `date $d +'/archives/%Y/%m/$filename.html'`;
       chop($slash_date);
 
-      my $long_date = `date $d +'%Y-%m-%d-filename'`;
+      my $long_date = `date $d +'%Y-%m-%d-$filename'`;
       chop($long_date);
 
       my $rfc_date = `date $d +'%F %T'`;
@@ -154,18 +162,18 @@ sub processText {
 
       my $yaml =  qq~---
 layout: post
-title: ""
+title: "$FORM{'title'}"
 permalink: $slash_date
 commentfile: $long_date
 category: news|around_town|editorial
 date: $rfc_date
 image: ""
 excerpt: |
-
+    $excerpt
 ---
 ~;
 
-    my $pr = qq|<cite>-- from a Richmond Council press release - $pr_date</cite>| if ($FORM{'cite'});
+  my $pr = qq|<cite>-- from a Richmond Council press release - $pr_date</cite>| if ($FORM{'cite'});
 
 
 
@@ -183,16 +191,20 @@ $docType
   <h1>Convert Text</h1>
   <h2>Output</h2>
   <div>
+    <pre>
   $yaml
   $output
-  $cite
+  $pr
+   </pre>
   </div>
 
   <form method="post" enctype="application/x-www-form-urlencoded">
 
   <p>
   <textarea rows="10" cols="80">
-  $preoutput
+$yaml
+$preoutput
+$pr
   </textarea></p>
 
   <h2>Input</h2>
@@ -206,7 +218,8 @@ $docType
   <li> Smarty: <input type="checkbox" name="smarty" value="on" $fS/> </li>
   <li> Hang: <input type="text" name="noHang" value="$FORM{'noHang'}" /> <em>0 or nothing for no hang</em></li>
   <li> html 2 textile: <input type="checkbox" name="html2textile" value="on" $fH /></li>
-  <li> date: <input type="text" name="date" value="$date" placeholder="$date" /></li>
+	  <li> title: <input type="text" name="title" value="$FORM{'title'}" /></li>
+<li> date: <input type="text" name="date" value="$date" placeholder="$date" /></li>
   <li> lbrut cite?: <input type="checkbox" name="cite" value="on" $fCite /></li>
   </ul>
   </p>
@@ -274,6 +287,7 @@ $docType
         <li> Hang: <input type="text" name="noHang" /> <em>0 or nothing for no hang</em> </li>
         <!-- <li> Acronyms: <input type="checkbox" name="acronym" value="on" /> <em>Gartner Acronyms</em></li>
         <li> UI Translate: <input type="checkbox" name="ui" value="on" $fU /> from: <select name="from">$select to: <select name="to">$select</li>-->
+	  <li> title: <input type="text" name="title" value="$FORM{'title'}" /></li>
         <li> date: <input type="text" name="date" value="$date" placeholder="$date" /></li>
         <li> lbrut cite?: <input type="checkbox" name="cite" value="on" $fCite /></li>
       </ul>
