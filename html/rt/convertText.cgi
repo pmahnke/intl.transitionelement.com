@@ -139,20 +139,29 @@ sub processText {
     $out = qq~
 $docType
 <title>convertText - $ENV{'REMOTE_ADDR'}</title>
-<link rel="stylesheet" href="https://mahnke.net/css/blueprint/blueprint/screen.css" type="text/css" media="screen, projection"> 
-<link rel="stylesheet" href="https://mahnke.net/css/blueprint/blueprint/print.css" type="text/css" media="print">    
-<!--[if IE]><link rel="stylesheet" href="https://mahnke.net/css/blueprint/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]--> 
- 
+<link rel="stylesheet" href="https://assets.ubuntu.com/v1/vanilla-framework-version-2.14.1.min.css"> 
 </head>
 <body>
-<div class="container" >
-<div id="content" class="span-23 last"> 
+  <div class="wrapper u-no-margin--top">
+    <div id="main-content" class="inner-wrapper">
+
+	<section class="p-strip">
+	<div class="row">
+	<div class="col-8">
 
 <h1>Convert Text</h1>
 <h2>Output</h2>
 <p>
 $output
 </p>
+
+</div>
+</div>
+</section>
+
+<section class="p-strip--light">
+<div class="row">
+<div class="col-8">
 
 <form method="post" enctype="application/x-www-form-urlencoded">
 
@@ -164,17 +173,16 @@ $preoutput
 <h2>Input</h2>
 <p><textarea name="input" rows="15" cols="80">$FORM{'input'}</textarea></p>
 
-<p>
- <ul>
-  <li> Textile: <input type="checkbox" name="textile" value="on" $fT/> <a href="/rt/mtmanual_textile2.html" target="_blank">?</a> format: <select name="flavor">$selFlavor</select> </li>
-  <li> Markdown: <input type="checkbox" name="markdown" value="on" $fM/> </li>
-  <li> Clean: <input type="checkbox" name="clean" value="on" $fC/> </li>
-  <li> Smarty: <input type="checkbox" name="smarty" value="on" $fS/> </li>
-  <li> Hang: <input type="text" name="noHang" value="$FORM{'noHang'}" /> <em>0 or nothing for no hang</em></li>
-  <li> html 2 textile: <input type="checkbox" name="html2textile" value="on" $fH /></li>
- </ul>
-</p>
+<input type="checkbox" id="textile" name="textile" value="on" $fT> <label for="textile">Textile</label> <a href="/rt/mtmanual_textile2.html" target="_blank">?</a> 
 
+<label for="flavor">format</label><select id="flavor" name="flavor">$selFlavor</select>
+
+<input type="checkbox" id="markdown" name="markdown" value="on" $fM> <label for="markdown">Markdown</label>
+<input type="checkbox" id="clean" name="clean" value="on" $fC> <label for="clean">Clean</label>
+<input type="checkbox" id="smarty" name="smarty" value="on" $fS> <label for="smarty">Smarty</label>
+<label for="noHang">Hang</label> <input type="text" id="noHang" name="noHang" value="$FORM{'noHang'}"> <em>0 or nothing for no hang</em>
+<input type="checkbox" id="h2t" name="html2textile" value="on" $fH > <label for="h2t">html 2 textile</label>
+ 
 <p><input type="submit" /></p>
 
 </form>
@@ -192,6 +200,9 @@ $preFull
 
 </div> 
 </div> 
+</section>
+</div>
+</div>
 </body>
 </html>
 

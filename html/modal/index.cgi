@@ -103,22 +103,22 @@ sub parseForm {
             </li>
           </ul>
           <input type="hidden" aria-hidden="true" aria-label="hidden field" name="formValidation" value="" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="formid" class="mktoField" value="%% formid %%" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="formVid" class="mktoField" value="%% formid %%" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="lpId" class="mktoField" value="%% lpId %%" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="subId" class="mktoField" value="30" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="munchkinId" class="mktoField" value="066-EOV-335" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="lpurl" class="mktoField" value="%% lpurl %%?cr={creative}&amp;kw={keyword}" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="cr" class="mktoField" value="" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="kw" class="mktoField" value="" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="q" class="mktoField" value="" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="returnURL" value="%% returnURL %%" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="retURL" value="%% returnURL %%" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="Consent_to_Processing__c" value="yes" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="productContext" id="product-context" value="{{ product }}" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_campaign" class="mktoField" id="utm_campaign" value="" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_medium" class="mktoField" id="utm_medium" value="" />
-          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_source" class="mktoField" id="utm_source" value="" />
+          <input type="hidden" aria-hidden="true" name="formid" class="mktoField" value="%% formid %%" />
+          <input type="hidden" aria-hidden="true" name="formVid" class="mktoField" value="%% formid %%" />
+          <input type="hidden" aria-hidden="true" name="lpId" class="mktoField" value="%% lpId %%" />
+          <input type="hidden" aria-hidden="true" name="subId" class="mktoField" value="30" />
+          <input type="hidden" aria-hidden="true" name="munchkinId" class="mktoField" value="066-EOV-335" />
+          <input type="hidden" aria-hidden="true" name="lpurl" class="mktoField" value="%% lpurl %%?cr={creative}&amp;kw={keyword}" />
+          <input type="hidden" aria-hidden="true" name="cr" class="mktoField" value="" />
+          <input type="hidden" aria-hidden="true" name="kw" class="mktoField" value="" />
+          <input type="hidden" aria-hidden="true" name="q" class="mktoField" value="" />
+          <input type="hidden" aria-hidden="true" name="returnURL" value="%% returnURL %%" />
+          <input type="hidden" aria-hidden="true" name="retURL" value="%% returnURL %%" />
+          <input type="hidden" aria-hidden="true" name="Consent_to_Processing__c" value="yes" />
+          <input type="hidden" aria-hidden="true" name="productContext" id="product-context" value="{{ product }}" />
+          <input type="hidden" aria-hidden="true" name="utm_campaign" class="mktoField" id="utm_campaign" value="" />
+          <input type="hidden" aria-hidden="true" name="utm_medium" class="mktoField" id="utm_medium" value="" />
+          <input type="hidden" aria-hidden="true" name="utm_source" class="mktoField" id="utm_source" value="" />
         </div>
 
         <div class="pagination">
@@ -240,6 +240,8 @@ sub cleanId {
     $id =~ s/ /-/g;
     $id =~ s/\.//g;
     $id =~ s/\s//g;
+    $id =~ s/('|’)//g;
+    $id =~ s/,//g;
     return($id)
 }
 

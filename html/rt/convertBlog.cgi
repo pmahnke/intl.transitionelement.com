@@ -138,7 +138,14 @@ sub processText {
   $filename =~ tr/[A-Z]/[a-z]/;
   $filename =~ s/ /-/g;
 
-  my $excerpt = (split /\n/, $preoutput)[0];
+  my $excerpt = "";
+  my @excerpt = (split /\n/, $preoutput);
+  foreach (@excerpt) { 
+      next if(!$_);
+      $excerpt=$_;
+      last if ($excerpt);
+  }
+
   
       # date logic for yaml
       my $d = qq |-d '$FORM{'date'} 10:00:00'| if ($FORM{'date'});
@@ -165,7 +172,7 @@ layout: post
 title: "$FORM{'title'}"
 permalink: $slash_date
 commentfile: $long_date
-category: news|around_town|editorial
+category: around_town|news|editorial
 date: $rfc_date
 image: ""
 excerpt: |
@@ -180,59 +187,95 @@ excerpt: |
       $out = qq~
 $docType
 <title>convertText - $ENV{'REMOTE_ADDR'}</title>
-<link rel="stylesheet" href="https://mahnke.net/css/blueprint/blueprint/screen.css" type="text/css" media="screen, projection">
-<link rel="stylesheet" href="https://mahnke.net/css/blueprint/blueprint/print.css" type="text/css" media="print">
-<!--[if IE]><link rel="stylesheet" href="https://mahnke.net/css/blueprint/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
+  <link rel="stylesheet" type="text/css" media="screen" href="https://assets.ubuntu.com/v1/vanilla-framework-version-2.19.3.min.css">
 </head>
 <body>
-  <div class="container" >
-  <div id="content" class="span-23 last">
+    <div class="wrapper u-no-margin--top">
+      <div id="main-content" class="inner-wrapper">
+        <section class="p-strip--light">
+	  <div class="row">
+            <div class="col-8">
+              <h1>Convert Text</h1>
+              <h2>Output</h2>
+              <div>
+<pre>
+$yaml
+$output
+$pr
+</pre>
+              </div>
+            </div>
+	  </div>
+	</section>
 
-  <h1>Convert Text</h1>
-  <h2>Output</h2>
-  <div>
-    <pre>
-  $yaml
-  $output
-  $pr
-   </pre>
-  </div>
+        <section class="p-strip">
+          <div class="row">
+	    <div class="col-8">
+	    <form method="post" enctype="application/x-www-form-urlencoded">
 
-  <form method="post" enctype="application/x-www-form-urlencoded">
-
-  <p>
-  <textarea rows="10" cols="80">
+	  <textarea rows="10" cols="80">
 $yaml
 $preoutput
 $pr
-  </textarea></p>
+	  </textarea>
 
-  <h2>Input</h2>
-  <p><textarea name="input" rows="15" cols="80">$FORM{'input'}</textarea></p>
+	  <label>
+	  <h2 id="inputh">Input</h2>
+	  </label>
+	  <textarea labeledby="inputh" id="input" name="input" rows="15" cols="80">$FORM{'input'}</textarea></p>
 
-  <p>
-  <ul>
-  <li> Textile: <input type="checkbox" name="textile" value="on" $fT/> <a href="/rt/mtmanual_textile2.html" target="_blank">?</a> format: <select name="flavor">$selFlavor</select> </li>
-  <li> Markdown: <input type="checkbox" name="markdown" value="on" $fM/> </li>
-  <li> Clean: <input type="checkbox" name="clean" value="on" $fC/> </li>
-  <li> Smarty: <input type="checkbox" name="smarty" value="on" $fS/> </li>
-  <li> Hang: <input type="text" name="noHang" value="$FORM{'noHang'}" /> <em>0 or nothing for no hang</em></li>
-  <li> html 2 textile: <input type="checkbox" name="html2textile" value="on" $fH /></li>
-	  <li> title: <input type="text" name="title" value="$FORM{'title'}" /></li>
-<li> date: <input type="text" name="date" value="$date" placeholder="$date" /></li>
-  <li> lbrut cite?: <input type="checkbox" name="cite" value="on" $fCite /></li>
-  </ul>
-  </p>
+	  <label for="flavor">format</label>
+	  <select id="flavor" name="flavor">$selFlavor</select> 
 
-  <p><input type="submit" /></p>
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelT" name="textile" value="on" $fT/>
+	  <span class="p-checkbox__label" id="checkboxLabelT">Textile <a href="/rt/mtmanual_textile2.html" target="_blank">?</a></span>
+	  </label>
+	  
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelM" name="markdown" value="on" $fM/>
+	  <span class="p-checkbox__label" id="checkboxLabelM">Markdown</span>
+	  </label>
 
-  </form>
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelC" name="clean" value="on" $fC/> 
+	  <span class="p-checkbox__label" id="checkboxLabelC">Clean</span>
+	  </label>
+	  
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelS" name="smarty" value="on" $fS/> 
+	  <span class="p-checkbox__label" id="checkboxLabelS">Smarty</span>
+	  </label>
+	  
+	  <!--<label class="p-checkbox">
+	  <input type="text" name="noHang" value="$FORM{'noHang'}" />
+	  <span class="p-checkbox__label" id="checkboxLabel0">hang <em>0 or nothing for no hang</em></span>
+	  </label>-->
+	  
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelH" name="html2textile" value="on" $fH />
+	  <span class="p-checkbox__label" id="checkboxLabelH">html 2 textile</span>
+	  </label>
+	  
+	  <label for="title">title<label>
+	  <input type="text" id="title" name="title" value="$FORM{'title'}" />
 
-  <h3>code with doctype</h3>
+	  <label for="date">date</label>
+	  <input type="text" id="date" name="date" value="$date" placeholder="$date" />
+	  
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelCite" name="cite" value="on" $fCite />
+	  <span class="p-checkbox__label" id="checkboxLabelCite">lbrute cite?</span>
+	  </label>
+	  
+	  <input class="p-button--positive" type="submit" />
+	  
+	  </form>
+
+	  <h3>code with doctype</h3>
   <pre>
   $preFull
   </pre>
-
 
         <h3>messages</h3>
         <p>$msg</p>
@@ -241,6 +284,7 @@ $pr
 
       </div>
     </div>
+</section>
   </body>
 </html>
       ~;
