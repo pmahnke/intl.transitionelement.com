@@ -38,9 +38,9 @@ sub parseForm {
         <p id="modal-description" class="u-no-max-width u-no-margin--bottom">$F{'description'}</p>
   |;
 
-  $output .= &processQ($F{'q1'}, $F{'q1-code'}, $F{'q1-answers'}, $F{'q1-other'} );
+  $output .= &processQ($F{'q1'}, $F{'q1-code'}, $F{'q1-answers'}, $F{'q1-other'}, $F{'q1-type'} );
 
-  $output .= &processQ($F{'q2'}, $F{'q2-code'}, $F{'q2-answers'}, $F{'q2-other'} );
+  $output .= &processQ($F{'q2'}, $F{'q2-code'}, $F{'q2-answers'}, $F{'q2-other'}, $F{'q2-type'} );
 
   $output .= qq |
 <div class="pagination">
@@ -52,10 +52,17 @@ sub parseForm {
   |;
 
 
-  $output .= &processQ($F{'q3'}, $F{'q3-code'}, $F{'q3-answers'}, $F{'q3-other'} );
+  $output .= &processQ($F{'q3'}, $F{'q3-code'}, $F{'q3-answers'}, $F{'q3-other'}, $F{'q3-type'} );
   
-  $output .= &processQ($F{'q4'}, $F{'q4-code'}, $F{'q4-answers'}, $F{'q4-other'} ) if ($F{'q4'});
+  $output .= &processQ($F{'q4'}, $F{'q4-code'}, $F{'q4-answers'}, $F{'q4-other'}, $F{'q4-type'} ) if ($F{'q4'});
 
+  $output .= qq |
+      <div class="u-sv3 js-formfield">
+        <h3 class="p-heading--five">$F{'question'}</h3>
+        <textarea id="open-question" name="open-question" aria-label="$F{'question'}" placeholder="$F{'question-helptext'}" rows="3"></textarea>
+      </div>
+      |;
+  
   $output .= qq |
 <div class="pagination">
   <a class="pagination__link--previous p-button--neutral" href="">Previous</a>
@@ -181,6 +188,7 @@ sub processQ {
   my @options = split (/\n/, $_[2]);
   my $mod = int(scalar @options / 3) + 1;
   my $other = $_[3];
+  my $type = $_[4];
   my ($i, $output) = "";
   
   $output = qq |
@@ -200,9 +208,17 @@ sub processQ {
       $output .= qq |          </div>
 	  <div class="col-4 u-sv3">\n| if ($i % $mod == 0 && $i);
       $m = $i % $mod;
-      $output .= qq |	    <input type="checkbox" id="$id">\n	    <label for="$id">$opt</label>\n|;
+      
+      if ($type eq "radio") {
+	  my $radio_id = &cleanId($code);
+	  $output .= qq |	    <input type="radio" id="$id" name="$radio_id" value="$opt">\n	    <label for="$id">$opt</label>\n|;
 
-      $i++;
+      } else {
+	  
+	  $output .= qq |	    <input type="checkbox" id="$id">\n	    <label for="$id">$opt</label>\n|;
+      
+      }
+	  $i++;
      
 
    }
@@ -234,8 +250,8 @@ sub processQ {
 
 sub cleanId {
 
-    my $id = "";
-    $id = $_[1]."-".$_[0];
+    my $id = $_[0];
+    $id = $_[1]."-".$_[0] if ($_[1]);
     $id =~ tr/[A-Z]/[a-z]/;
     $id =~ s/ /-/g;
     $id =~ s/\.//g;
@@ -248,6 +264,11 @@ sub cleanId {
 ########################################
 sub printForm {
 
+    $F{'q1-type-checked'} = "checked" if ($F{'q1-type'} eq "radio");
+    $F{'q2-type-checked'} = "checked" if ($F{'q2-type'} eq "radio");
+    $F{'q3-type-checked'} = "checked" if ($F{'q3-type'} eq "radio");
+    $F{'q4-type-checked'} = "checked" if ($F{'q4-type'} eq "radio");
+    
     print qq ~Content-type: text/html\n\n  
 <!doctype html>
   <head>
@@ -286,6 +307,8 @@ $_[0]
   <textarea id="q1-answers" name="q1-answers" rows="8" cols="80">$F{'q1-answers'}</textarea>
   <label for="q1-code">code</label>
   <input id="q1-code" type="text" name="q1-code" value="$F{'q1-code'}">
+  <input id="q1-type" type="checkbox" name="q1-type" value="radio" $F{'q1-type-checked'}>
+  <label for="q1-type">Radio? (<em>default is checkbox</em>)</label>
   <label for="q1-other">other</label>
   <input id="q1-other" type="text" name="q1-other" value="$F{'q1-other'}" />
   
@@ -295,6 +318,8 @@ $_[0]
   <textarea id="q2-answers" name="q2-answers" rows="8" cols="80">$F{'q2-answers'}</textarea>
   <label for="q2-code">code</label>
   <input id="q2-code" type="text" name="q2-code" value="$F{'q2-code'}">
+  <input id="q2-type" type="checkbox" name="q2-type" value="radio" $F{'q2-type-checked'}>
+  <label for="q2-type">Radio? (<em>default is checkbox</em>)</label>
   <label for="q2-other">other</label>
   <input id="q2-other" type="text" name="q2-other" value="$F{'q2-other'}" />
   
@@ -304,6 +329,8 @@ $_[0]
   <textarea id="q3-answers" name="q3-answers" rows="8" cols="80">$F{'q3-answers'}</textarea>
   <label for="q3-code">code</label>
   <input id="q3-code" type="text" name="q3-code" value="$F{'q3-code'}">
+  <input id="q3-type" type="checkbox" name="q3-type" value="radio" $F{'q3-type-checked'}>
+  <label for="q3-type">Radio? (<em>default is checkbox</em>)</label>
   <label for="q3-other">other</label>
   <input id="q3-other" type="text" name="q3-other" value="$F{'q3-other'}" />
   
@@ -313,11 +340,16 @@ $_[0]
   <textarea id="q4-answers" name="q4-answers" rows="8" cols="80">$F{'q4-answers'}</textarea>
   <label for="q4-code">code</label>
   <input id="q4-code" type="text" name="q4-code" value="$F{'q4-code'}">
+  <input id="q4-type" type="checkbox" name="q4-type" value="radio" $F{'q4-type-checked'}>
+  <label for="q4-type">Radio? (<em>default is checkbox</em>)</label>
   <label for="q4-other">other</label>
   <input id="q4-other" type="text" name="q4-other" value="$F{'q4-other'}" />
   
-  <label for="title">Open question</label>
+  <label for="question">Open question</label>
   <input id="question" type="text" name="question" value="$F{'question'}">
+  
+  <label for="question-helptext">Open question help text</label>
+  <input id="question-helptext" type="text" name="question-helptext" value="$F{'question-helptext'}">
   
   <label for="ty-title">Thank you title</label>
   <input id="ty-title" type="text" name="ty-title" value="$F{'ty-title'}">

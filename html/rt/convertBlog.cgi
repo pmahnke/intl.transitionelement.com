@@ -136,7 +136,10 @@ sub processText {
   my $filename = $FORM{'title'};
   $filename = "lbrut-".$filename if ($FORM{'cite'});
   $filename =~ tr/[A-Z]/[a-z]/;
-  $filename =~ s/ /-/g;
+  $filename =~ s/( |'|"|:)/-/g;
+  $filename =~ s/----/-/g;
+  $filename =~ s/---/-/g;
+  $filename =~ s/--/-/g;
 
   my $excerpt = "";
   my @excerpt = (split /\n/, $preoutput);
