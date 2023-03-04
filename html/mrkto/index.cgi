@@ -1,4 +1,5 @@
 #!/usr//bin/perl
+
 # marketo to normal htmlconverter
 # status
 # 2015-11-18 - change jquery.validation to add http:// as defauls protocal on url fields
@@ -85,8 +86,8 @@ sub parseHTML {
 
         # in the form, so set the flag to start working
         if (/<form/ && /id="(mktoForm_.[^"]*)"/) {
-$FLAGform = 1; 
-$formId = $1;
+	    $FLAGform = 1; 
+	    $formId = $1;
         }
         next if (!$FLAGform); # skip if not in the form
         
@@ -96,45 +97,39 @@ $formId = $1;
 
         # stop processing if at end of the form
         if ($FLAGform && /<\/form>/) {
-$o .= &processRow($field, $FLAGreq);
-$FLAGform = 0;
-next;
+	    $o .= &processRow($field, $FLAGreq);
+	    $FLAGform = 0;
+	    next;
         }
         
         
         # SKIP THE MKTOCLEAR EMPTY DIVS    
         if ($FLAGclear) {
 
-#skip the closing div and reset the flag
-$FLAGclear = 0;
-next;
-
+	    #skip the closing div and reset the flag
+	    $FLAGclear = 0;
+	    next;
+	    
         }
         $FLAGclear = 1 if (/<div class="mktoClear">/);
-        
-        # IN A ROW
-        if (/<div class="(mktoFormRow|mktoFieldWrap|mktoButtonRow)">/) {
 
-            if ($field =~ /NewsletterOpt-In/) {
-                $o .= $goodOptin; # override
-            } elsif ($field =~ /"State"/) {
-                print STDERR qq |found state $field|;
-                $o .= $goodState;
-            } else {       
-                $o .= &processRow($field, $FLAGreq);
-            }
-            
-            ($field, $FLAGreq) = "";
+	# OUT OF A ROW
+	if (/<div class="mktoClear">/ && $FLAGrow) {
+	    $FLAGrow = 0;
+	    $o .= &processRow($field, $FLAGreq);
+	    ($field, $FLAGreq) = "";
+	    next;
+	}
+	
+        # IN A ROW
+        if (/<(input|button|select|textarea|label|div class="mktoHtmlText)/) {
             $FLAGrow = 1;
-        
         }
         
         
         if ($FLAGrow) {
-        
-            $field    .= $_ if (!/(<div|<\/div|<span)/);
+            $field    .= $_;
             $FLAGreq   = 1 if (/mktoRequiredField/);
-       
         }           
     
     }
@@ -150,32 +145,56 @@ sub processRow {
 					
     my ($out, $class) = "";
     return() if (!$_[0]);
+
+    return if ($_[0] =~ /(hidden|canonicalUpdatesOptIn|button)/);
     
     # sets class based on required or not
-    $class = qq | class="p-list__item mktField"|;
-    $class = qq | class="p-list__item mktFormReq mktField"| if ($_[1]);
+    $class = qq | class="p-list__item"|;
+    $class = qq | class="p-list__item"| if ($_[1]);
     $class .= qq | id="comments"| if ($_[0] =~ /Comments_from_lead__c/);
 
     my $in = $_[0];
     
     $in =~ s/style="(.[^"]*)"//g; # remove inline styles
     $in =~ s/\*//g; # remove Asterix for required fields
-    $in =~ s/(mktoTextField|mktoHasWidth|mktoFieldDescriptor|mktoHasWidth)//g; # removing random classes
+    $in =~ s/class="(.[^"]*?)"//g; #TextField|mktoHasWidth|mktoFieldDescriptor|mktoHasWidth|mktoField|mktoEmailField|mktoRequired|mktoInvalid|mktoFormCol|mktoLabel)//g; # removing random classes
+    $in =~ s/<span (.[^>?]*)>//g;
+    $in =~ s/<\/span>//g;
+    $in =~ s/ class="\s*"//g;
+    $in =~ s/<div\s*>//g;
+    $in =~ s/<\/div>//g;
     $in =~ s/:<\/label>/ (optional):<\/label>/g if (!$_[1]); # add span if required
     $in =~ s/<(input|textarea|select)/<$1 required /g if ($_[1]); # add html5 required
+
+    if ($in =~ /In submitting this form, I confirm that I have read and agree to <a href="https:\/\/www.ubuntu.com\/legal\/dataprivacy" target="_blank"  id="">Canonical's Privacy Policy<\/a>/) {
+	$in = qq |
+
+              <input value="yes" id="canonicalUpdatesOptIn" name="canonicalUpdatesOptIn" type="checkbox" />
+              <label for="canonicalUpdatesOptIn">I agree to receive information about Canonical's products and services.</label>
+
+              <p>
+                In submitting this form, I confirm that I have read and agree to <a href="/legal/data-privacy/contact">Canonical's Privacy Notice</a> and <a href="/legal/data-privacy">Privacy Policy</a>.
+              </p>
+            
+              {# These are honey pot fields to catch bots #}
+              <div class="u-off-screen">
+                <label class="website" for="website">Website:</label>
+                <input name="website" type="text" class="website" autocomplete="off" value="" id="website" tabindex="-1" />
+                <label class="name" for="name">Name:</label>
+                <input name="name" type="text" class="name" autocomplete="off" value="" id="name" tabindex="-1" />
+              </div>
+            {# End of honey pots #}
+|;
+	}
         
     # formatting clean-ups
-    $in =~ s/\n//g; # remove extra newlines
     $in =~ s/<\/option><option/<\/option>\r<option/g; # prepend space to options
     $in =~ s/<\/label></<\/label>\r</g; # format labels
     $in =~ s/</&lt;/g; # convert < to &lt;
-    
-    $out = qq |
-        <li $class>    
-$in
-        </li>
-    |; # wrap fields in list
-    
+
+    $out = qq |        $in\n\n|;
+    $out =~ s/<div\s*>//g;
+    $out =~ s/<\/div>//g;
     return($out);
 
 }
@@ -188,33 +207,27 @@ sub printForm {
     my $display;
     $display = qq | style="display: none;" | if (!$_[0]);
     
-    my $formTag = qq |<form action="https://pages.ubuntu.com/index.php/leadCapture/save" method="post" id="$_[1]" class="marketo-form">|;
+    my $formTag = qq |<form action="/marketo/submit" method="post" id="$_[1]">|;
     
     my $form = qq |
 <!-- MARKETO FORM -->
-<script src="//assets.ubuntu.com/v1/37b1db88-jquery.min.js"></script>
-<script  src="//assets.ubuntu.com/v1/d55f58bb-jquery.validate.js"></script>
-<script src="//assets.ubuntu.com/v1/6ce35d3e-jquery-ui.min.js"></script>‌​
-    
-$formTag 
-<fieldset>
-    <ul class="p-list">          
+      $formTag 
+        <fieldset class="u-no-margin--bottom">
 $_[0]
-    </ul>
-</fieldset>
-</form>
-<script>
-\$("\#$_[1]").validate({
-    errorElement: "span",
-    errorClass: "mktFormMsg mktError",
-    onkeyup: false,
-    onclick: false,
-    onblur: false
-});
-$testscript
-</script>
-<script  src="//assets.ubuntu.com/v1/f97fa297-stateCountry.js"></script>
-
+          <!-- hidden fields -->
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="formid" value="{{formid}}" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="returnURL" value="{{returnURL}}" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="Consent_to_Processing__c" value="yes" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_campaign" id="utm_campaign" value="" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_medium" id="utm_medium" value="" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_source" id="utm_source" value="" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_content" id="utm_content" value="" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="utm_term" id="utm_term" value="" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="GCLID__c" id="GCLID__c" value="" />
+          <input type="hidden" aria-hidden="true" aria-label="hidden field" name="FBCLID__c" id="FBLID__c" value="" />
+          <button type="submit" class="p-button--positive" onclick="dataLayer.push({'event' : 'GAEvent', 'eventCategory' : 'Form', 'eventAction' : 'contact-us', 'eventLabel' : '{{product}}', 'eventValue' : undefined });">Submit</button>
+        </fieldset>
+      </form>
 <!-- /MARKETO FORM -->
 
 |;
@@ -222,8 +235,6 @@ $testscript
     $form =~ s/button><\/span>/button>/g;
     $form =~ s/&(?!#?[xX]?(?:[0-9a-fA-F]+|\w+);)/&amp;/g; # amputator
     $form =~ s/\}\&/\}\&amp;/g;
-    $form =~ s/<\/form>/\n<input type="hidden" name="returnURL" value="$F{'thank-you'}" \/>\n<input type="hidden" name="retURL" value="$F{'thank-you'}" \/>\n<\/form>/;
-
     $form =~ s/&lt;/</g;
     
     my $safeForm = $form;

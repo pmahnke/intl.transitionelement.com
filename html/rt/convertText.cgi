@@ -109,6 +109,8 @@ sub processText {
     $output = &SmartyPants ($output, 1)            if ($FORM{'smart'});
     $output = &noHang($output, $FORM{'noHang'})    if ($FORM{'noHang'});
     $output = &html2textile($output)               if ($FORM{'html2textile'});
+    my $colors = &colorcheck($output);
+
     
     $preoutput = $output;
     
@@ -169,6 +171,9 @@ $output
 <textarea rows="10" cols="80">
 $preoutput
 </textarea></p>
+
+<h4>Colours</h4>
+$colors
 
 <h2>Input</h2>
 <p><textarea name="input" rows="15" cols="80">$FORM{'input'}</textarea></p>
@@ -289,8 +294,8 @@ sub getSelect {
 	$selX11 = "selected\=\"selected\"";
     } elsif ($FORM{'flavor'} eq "xhtml2") {
 	$selX2 = "selected\=\"selected\"";
-    } else {
-	$selH = "selected\=\"selected\"";
+v    } else {
+v	$selH = "selected\=\"selected\"";
     }
 
 
@@ -304,3 +309,25 @@ EOF
 
 }
 
+#########################################################################
+sub colorcheck {
+
+    print STDERR qq|in colorcheck\n|;
+    
+    #my @colors = $_[0] =~ /#(([0-9a-fA-F]{2}){3}|([0-9a-fA-F]){3})/g;
+    my @colors = $_[0] =~ /#[0-9a-fA-F]{3,6}/g;
+    my $colors = "";
+
+    print STDERR qq|colorcheck:\n found colors: @colors\n|;
+    #return();
+
+    foreach (@colors) {
+	next if (/\#def/);
+	print STDERR qq| have color $_\n|;
+	$colors .= qq |\t<li style="display:block; width:20px; height:20px;background-color:$_;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$_</li>\n|;
+    }
+    $colors = qq|\n<ul>\n$colors\n</ul>\n|;
+    return($colors);
+    
+
+}

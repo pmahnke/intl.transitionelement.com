@@ -28,11 +28,12 @@ exit;
 sub parseForm {
 
   my $output = qq |
+  <button id="showModal" aria-controls="contact-modal">Show modal…</button>
   <div class="p-modal" id="contact-modal">
-    <div class="p-modal__dialog" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-description">
+    <div class="p-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
       <header class="p-modal__header" style="display: block; border-bottom: 0;">
-        <button class="p-modal__close" aria-label="Close active modal" style="margin-left: -1rem">Close</button>
         <h2 class="p-modal__title u-sv1" id="modal-title">$F{'title'}</h2>
+        <button class="p-modal__close" aria-label="Close active modal" aria-controls="modal">Close</button>
       </header>
       <div class="js-pagination js-pagination--1">
         <p id="modal-description" class="u-no-max-width u-no-margin--bottom">$F{'description'}</p>
@@ -161,8 +162,8 @@ sub parseForm {
   $output = qq |
   <section class="p-strip">
     <div class="row">
-      <div class="col-8">
-        $doutput
+      <div class="col-12">
+        $output
       </div>
     </div>
     <div class="row">
@@ -195,7 +196,7 @@ sub processQ {
   <div class="js-formfield">
     <h3 class="p-heading--five">$title</h3>
     <div class="row u-no-padding">
-      <div class="col-4 u-sv3">
+      <div class="col-3 u-sv3">
   |;
   
   foreach (@options) {
@@ -206,16 +207,26 @@ sub processQ {
       my $id = &cleanId($opt, $code);
 
       $output .= qq |          </div>
-	  <div class="col-4 u-sv3">\n| if ($i % $mod == 0 && $i);
+	  <div class="col-3 u-sv3">\n| if ($i % $mod == 0 && $i);
       $m = $i % $mod;
       
       if ($type eq "radio") {
 	  my $radio_id = &cleanId($code);
-	  $output .= qq |	    <input type="radio" id="$id" name="$radio_id" value="$opt">\n	    <label for="$id">$opt</label>\n|;
+	  $output .= qq |
+	      <label class="p-radio" for="$id">
+  	        <input class="p-radio__input" type="radio" aria-labelledby="$radio_id" value="$opt">
+	        <span  class="p-radio__label" id="$radio_id">$opt</span>
+	      </label>
+	      |;
 
       } else {
 	  
-	  $output .= qq |	    <input type="checkbox" id="$id">\n	    <label for="$id">$opt</label>\n|;
+	  $output .= qq |
+	      <label class="p-checkbox" aria-labelledby="$id">
+	        <input class="p-checkbox__input" type="checkbox">
+	        <span class="p-checkbox__label" id="$id">$opt</span>
+	      </label>
+	      |;
       
       }
 	  $i++;
@@ -230,9 +241,11 @@ sub processQ {
 
       $output .= qq |
 	<div class="js-other-container">
-	  <input type="checkbox" class="js-other-container__checkbox" id="$id">
-	  <label for="$id">Other</label>
-	  <input type="text" id="$id-specified" class="js-other-container__input" placeholder="Please specify" style="opacity: 0; margin-top: .25rem;" aria-label="$other">
+	  <label class="p-checkbox" aria-labelledby="$id">
+	    <input class="p-checkbox__input js-other-container__checkbox" id="$id" type="checkbox">
+	    <span class="p-checkbox__label" id="$id">Other</span>
+	    <input type="text" id="$id-specified" class="js-other-container__input" placeholder="Please specify" style="opacity: 0; margin-top: .25rem;" aria-label="$other">
+	  </label>
         </div>
 	|;
     }
@@ -258,6 +271,7 @@ sub cleanId {
     $id =~ s/\s//g;
     $id =~ s/('|’)//g;
     $id =~ s/,//g;
+    $id =~ s/(\(|\))//g;
     return($id)
 }
 
@@ -274,7 +288,8 @@ sub printForm {
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Interactive get-in-touch form builder</title>
-    <link rel="stylesheet" href="https://assets.ubuntu.com/v1/vanilla-framework-version-2.12.0.min.css" />
+    <link rel="stylesheet" href="https://assets.ubuntu.com/v1/vanilla-framework-version-3.1.1.min.css" />
+    <script src="https://ubuntu.com/static/js/dist/main.js?v=597d458" defer=""></script>
   </head>
   <body>
     <div class="wrapper">
@@ -369,6 +384,128 @@ $_[0]
       </div>
     </div>
   </body>
+  <script>
+  // This is an example modal implementation inspired by
+  // https://www.w3.org/TR/wai-aria-practices/examples/dialog-modal/dialog.html
+
+(function () {
+  // This is not a production ready code, just serves as an example
+  // of how the focus should be controlled within the modal dialog.
+  var currentDialog = null;
+  var lastFocus = null;
+  var ignoreFocusChanges = false;
+  var focusAfterClose = null;
+
+  // Traps the focus within the currently open modal dialog
+  function trapFocus(event) {
+    if (ignoreFocusChanges) return;
+
+    if (currentDialog.contains(event.target)) {
+      lastFocus = event.target;
+    } else {
+      focusFirstDescendant(currentDialog);
+      if (lastFocus == document.activeElement) {
+        focusLastDescendant(currentDialog);
+      }
+      lastFocus = document.activeElement;
+    }
+  }
+
+  // Attempts to focus given element
+  function attemptFocus(child) {
+    if (child.focus) {
+      ignoreFocusChanges = true;
+      child.focus();
+      ignoreFocusChanges = false;
+      return document.activeElement === child;
+    }
+
+    return false;
+  }
+
+  // Focuses first child element
+  function focusFirstDescendant(element) {
+    for (var i = 0; i < element.childNodes.length; i++) {
+      var child = element.childNodes[i];
+      if (attemptFocus(child) || focusFirstDescendant(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Focuses last child element
+  function focusLastDescendant(element) {
+    for (var i = element.childNodes.length - 1; i >= 0; i--) {
+      var child = element.childNodes[i];
+      if (attemptFocus(child) || focusLastDescendant(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+    Toggles visibility of modal dialog.
+    @param {HTMLElement} modal Modal dialog to show or hide.
+    @param {HTMLElement} sourceEl Element that triggered toggling modal
+    @param {Boolean} open If defined as `true` modal will be opened, if `false` modal will be closed, undefined toggles current visibility.
+  */
+  function toggleModal(modal, sourceEl, open) {
+    if (modal && modal.classList.contains('p-modal')) {
+      if (typeof open === 'undefined') {
+        open = modal.style.display === 'none';
+      }
+
+      if (open) {
+        currentDialog = modal;
+        modal.style.display = 'flex';
+        focusFirstDescendant(modal);
+        focusAfterClose = sourceEl;
+        document.addEventListener('focus', trapFocus, true);
+      } else {
+        modal.style.display = 'none';
+        if (focusAfterClose && focusAfterClose.focus) {
+          focusAfterClose.focus();
+        }
+        document.removeEventListener('focus', trapFocus, true);
+        currentDialog = null;
+      }
+    }
+  }
+
+  // Find and hide all modals on the page
+  function closeModals() {
+    var modals = [].slice.apply(document.querySelectorAll('.p-modal'));
+    modals.forEach(function (modal) {
+      toggleModal(modal, false, false);
+    });
+  }
+
+  // Add click handler for clicks on elements with aria-controls
+  document.addEventListener('click', function (event) {
+    var targetControls = event.target.getAttribute('aria-controls');
+    if (targetControls) {
+      toggleModal(document.getElementById(targetControls), event.target);
+    }
+  });
+
+  // Add handler for closing modals using ESC key.
+  document.addEventListener('keydown', function (e) {
+    e = e || window.event;
+
+    if (e.code === 'Escape') {
+      closeModals();
+    } else if (e.keyCode === 27) {
+      closeModals();
+    }
+  });
+
+  // init the dialog that is initially opened in the example
+  toggleModal(document.querySelector('#modal'), document.querySelector('[aria-controls=modal]'), true);
+})();
+  </script>
+
 </html>
 
 ~;

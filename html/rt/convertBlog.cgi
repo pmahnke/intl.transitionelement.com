@@ -23,10 +23,14 @@ require ("/home/stmargarets/cgi-bin/common_text.pl");
 ##############################################################
 if ($ENV{'CONTENT_LENGTH'} || $ENV{'QUERY_STRING'}) {
 
+    if ($ENV{'CONTENT_LENGTH'}) {
+	read(STDIN,$buffer,$ENV{'CONTENT_LENGTH'});
+	@pairs = split(/&/, $buffer);
+    } else {
+	@pairs = split(/&/, $ENV{'QUERY_STRING'});
+    }
 
-  read(STDIN,$buffer,$ENV{CONTENT_LENGTH});
 
-  @pairs = split(/&/, $buffer);
   foreach $pair (@pairs) {
 
     ($name, $value) = split(/=/, $pair);
@@ -79,8 +83,22 @@ sub processText {
 
   &getDocType;
 
+  $FORM{'input'} =~ s/^\d{5}//;
+  $FORM{'input'} =~ s/CTA - \[\]\(\)//;
+
+  
+  # remove link to press release
+  my $richlink ="";
+  if ($FORM{'input'} =~ /https:\/\/www.richmond.gov.uk\/\/news\/(.*)/) {
+      $richlink = $&;
+      $FORM{'input'} =~ s/$richlink//;
+  }
+
   $output = $FORM{'input'};
 
+  my $image = $1 if ($output =~ /img src="(.[^"]*)"/);
+  my $imagefull = $& if ($output =~/<img(.[^>]*?)>/);
+  
   if ($FORM{'textile'}) {
 
     $output = &clean4textile($output); # clean funny characters
@@ -105,38 +123,46 @@ sub processText {
       $output = &SmartyPants ($output, 1)            if ($FORM{'smart'});
       $output = &noHang($output, $FORM{'noHang'})    if ($FORM{'noHang'});
       $output = &html2textile($output)               if ($FORM{'html2textile'});
-
-      $preoutput = $output;
-
-      $preoutput =~ s/\&amp\;/\&/g;
-      $preoutput =~ s/\&/\&amp\;/g;
-      $preoutput =~ s/</&lt\;/g;
-      $preoutput =~ s/>/&gt\;/g;
-      $preoutput =~ s/\n/\n\n/g;
-      $preoutput =~ s/\n\n\n/\n\n/g;
-      $preoutput =~ s/\n\n\n/\n\n/g;
-
-      $preFull = $docType."<title>add title<\/title\>\n\n<\/head\>\n\n<body\>\n\n".$output."\n<\/body\>\n<\/html\>\n";
-      $preFull =~ s/\&amp\;/\&/g;
-      $preFull =~ s/\&/\&amp\;/g;
-      $preFull =~ s/</&lt\;/g;
-      $preFull =~ s/>/&gt\;/g;
-
-
-      #$output =~ s/\n/<br \/\>\n/g;
-      $output =~ s/\&amp\;/\&/g;
-
-      $fC = "checked=\"checked\"" if ($FORM{'clean'});
-      $fM = "checked=\"checked\"" if ($FORM{'markdown'});
-      $fS = "checked=\"checked\"" if ($FORM{'smarty'});
-      $fT = "checked=\"checked\"" if ($FORM{'textile'});
-      $fH = "checked=\"checked\"" if ($FORM{'html2textile'});
-      $fCite = "checked=\"checked\"" if ($FORM{'cite'});
+  
+  $preoutput = $output;
+  
+  if ($imagefull) {
+      $preoutput =~ s/$imagefull//;
+      $imagefull =~ s/alt=""//;
+  }
+  $preoutput =~ s/\&amp\;/\&/g;
+  $preoutput =~ s/\&/\&amp\;/g;
+  $preoutput =~ s/</&lt\;/g;
+  $preoutput =~ s/>/&gt\;/g;
+  $preoutput =~ s/\n/\n\n/g;
+  $preoutput =~ s/\n\n\n/\n\n/g;
+  $preoutput =~ s/\n\n\n/\n\n/g;
+  $preoutput =~ s/- (.[^\n]*)\n\n- /- $1\n- /g;
+  
+  $preFull = $docType."<title>add title<\/title\>\n\n<\/head\>\n\n<body\>\n\n".$output."\n<\/body\>\n<\/html\>\n";
+  $preFull =~ s/\&amp\;/\&/g;
+  $preFull =~ s/\&/\&amp\;/g;
+  $preFull =~ s/</&lt\;/g;
+  $preFull =~ s/>/&gt\;/g;
+  
+  
+  #$output =~ s/\n/<br \/\>\n/g;
+  $output =~ s/\&amp\;/\&/g;
+  
+  $fC = "checked=\"checked\"" if ($FORM{'clean'});
+  $fM = "checked=\"checked\"" if ($FORM{'markdown'});
+  $fS = "checked=\"checked\"" if ($FORM{'smarty'});
+  $fT = "checked=\"checked\"" if ($FORM{'textile'});
+  $fH = "checked=\"checked\"" if ($FORM{'html2textile'});
+  $fCite = "checked=\"checked\"" if ($FORM{'cite'});
+  $fCite_MP = "checked=\"checked\"" if ($FORM{'cite_MP'});
+  $fCite_Martyn = "checked=\"checked\"" if ($FORM{'cite_Martyn'});
 
   my $filename = $FORM{'title'};
   $filename = "lbrut-".$filename if ($FORM{'cite'});
+  $filename = "mp-".$filename if ($FORM{'cite_MP'});
   $filename =~ tr/[A-Z]/[a-z]/;
-  $filename =~ s/( |'|"|:)/-/g;
+  $filename =~ s/( |'|"|:|,)/-/g;
   $filename =~ s/----/-/g;
   $filename =~ s/---/-/g;
   $filename =~ s/--/-/g;
@@ -168,23 +194,37 @@ sub processText {
       chop($rfc_date);
 
       my $pr_date = `date $d +'%-d %B %Y'`;
-      chop($pr_date);
+  chop($pr_date);
 
-      my $yaml =  qq~---
+  # stmg my $cat = qq~around_town|news|editorial~;
+  my $cat = qq~travel|culture|life in the UK|on technology|about|of interest|on food & drink~;
+  my $pr = "";
+  if ($FORM{'cite'}) {
+      $cat = qq~news|around_town~;
+      $pr = qq|<cite>-- from a Richmond Council press release - $pr_date</cite>|;
+      $pr = qq|<cite>-- from a [Richmond Council press release - $pr_date]($richlink)</cite>| if ($richlink);
+      $pr =~ s/\/\/news/\/news/g;
+
+  } elsif ($FORM{'cite_MP'}) {
+      $cat = qq~news~;
+      $pr = qq|<cite>-- from a Munira Wilson, MP for Twickenham press release - $pr_date</cite>|;
+  } elsif ($FORM{'cite_Martyn'}) {
+      $cat = qq~around_town~;
+      $pr = qq|<cite>-- from Martyn Day</cite>|;
+  }
+  
+  my $yaml =  qq~---
 layout: post
 title: "$FORM{'title'}"
 permalink: $slash_date
 commentfile: $long_date
-category: around_town|news|editorial
+category: $cat
 date: $rfc_date
-image: ""
+image: "$image"
 excerpt: |
     $excerpt
 ---
 ~;
-
-  my $pr = qq|<cite>-- from a Richmond Council press release - $pr_date</cite>| if ($FORM{'cite'});
-
 
 
       $out = qq~
@@ -218,6 +258,8 @@ $pr
 
 	  <textarea rows="10" cols="80">
 $yaml
+$imagefull
+
 $preoutput
 $pr
 	  </textarea>
@@ -269,6 +311,14 @@ $pr
 	  <label class="p-checkbox">
 	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelCite" name="cite" value="on" $fCite />
 	  <span class="p-checkbox__label" id="checkboxLabelCite">lbrute cite?</span>
+	  </label>
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelCite_MP" name="cite_MP" value="on" $fCite_MP />
+	  <span class="p-checkbox__label" id="checkboxLabelCite_MP">MP cite?</span>
+	  </label>
+	  <label class="p-checkbox">
+	  <input type="checkbox" class="p-checkbox__input" labelledby="checkboxLabelCite_Martyn" name="cite_Martyn" value="on" $fCite_Martyn />
+	  <span class="p-checkbox__label" id="checkboxLabelCite_Martyn">Martyn Day cite?</span>
 	  </label>
 	  
 	  <input class="p-button--positive" type="submit" />
